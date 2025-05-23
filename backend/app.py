@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 import os
 from .extensions import db, migrate
 # Ensure models are imported so Alembic can find them if not already by relationships
@@ -32,6 +32,10 @@ def create_app():
     app.register_blueprint(products_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(cart_bp)
+
+    @app.route('/')
+    def serve_index():
+        return send_from_directory(os.path.join(os.path.dirname(__file__), '..', 'frontend'), 'index.html')
 
     return app
 
