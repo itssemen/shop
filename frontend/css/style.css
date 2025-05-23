@@ -414,3 +414,190 @@ button:hover,
 #checkout-button:hover {
     background-color: #4cae4c;
 }
+
+/* --- Catalog Dropdown Styling --- */
+#catalog-dropdown {
+    display: none; /* Hidden by default, JS handles visibility */
+    position: absolute; /* JS sets this, but good to reinforce */
+    background-color: #1e1e1e; /* Dark background, consistent with cards/modals */
+    border: 1px solid orange; /* Orange border, consistent with theme */
+    border-radius: 4px;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Deeper shadow for overlay */
+    z-index: 1000; /* Ensure it's above other content */
+    padding: 5px 0; /* Padding for the container itself */
+}
+
+#catalog-dropdown ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#catalog-dropdown .main-category-item {
+    padding: 10px 15px;
+    color: #FFFFFF; /* White text */
+    cursor: pointer;
+    position: relative; /* For positioning subcategories */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#catalog-dropdown .main-category-item:hover {
+    background-color: orange;
+    color: #000000; /* Black text on orange hover */
+}
+
+#catalog-dropdown .subcategories {
+    display: none; /* Hidden by default, JS shows on hover */
+    position: absolute;
+    left: 100%; /* Position to the right of the parent li */
+    top: -1px; /* Align with the top of the parent li (adjust if border makes it misaligned) */
+    background-color: #2a2a2a; /* Slightly lighter than main dropdown for depth */
+    border: 1px solid orange;
+    border-left: 2px solid #e69500; /* Emphasize flyout connection */
+    min-width: 180px;
+    border-radius: 0 4px 4px 0; /* Rounded corners on the flyout side */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.25);
+    padding: 5px 0; /* Padding for the sub-menu container */
+}
+
+#catalog-dropdown .main-category-item:hover > .subcategories {
+    /* JS handles display: block, this is just a fallback or can be used if JS only adds a class */
+    /* display: block; */ 
+}
+
+#catalog-dropdown .subcategory-item {
+    padding: 8px 15px;
+    color: #CCCCCC; /* Light grey text for sub-items */
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#catalog-dropdown .subcategory-item:hover {
+    background-color: orange;
+    color: #000000; /* Black text on orange hover */
+}
+
+/* Ensure no text decoration for links if they were used (they are LIs here) */
+#catalog-dropdown a {
+    text-decoration: none;
+    color: inherit; /* Inherit color from parent LI */
+    display: block; /* Make entire area clickable if LIs were As */
+}
+
+/* Styling for Add to Cart button on product cards */
+.product-card .add-to-cart-btn {
+    /* Most styling (orange background, black text, padding, border-radius) 
+       is inherited from the general 'button' rule. */
+    margin-top: 8px; /* Add some space if it's below the 'View Details' button */
+    /* If it were to replace view-details, margin-top might be similar to view-details-btn's original */
+}
+
+/* --- Product Filtering and Sorting Controls Styling --- */
+#product-controls-section {
+    margin-top: 20px;
+    margin-bottom: 30px;
+    padding: 25px;
+    border: 1px solid orange;
+    border-radius: 8px;
+    background-color: #1e1e1e; /* Consistent dark background */
+    box-shadow: 0 2px 4px rgba(255,165,0,0.1);
+}
+
+#product-controls-section h2 { /* "Фильтры и Сортировка" */
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #FFFFFF;
+    font-size: 1.8em;
+    border-bottom: 1px solid orange;
+    padding-bottom: 10px;
+}
+
+#product-controls-section h3 { /* "Фильтры:" */
+    margin-top: 20px; /* Space above sub-heading */
+    margin-bottom: 15px;
+    color: #FFFFFF;
+    font-size: 1.5em;
+    /* No border-bottom for h3 to differentiate from main section h2 */
+}
+
+#sorting-controls, 
+.filter-group, /* Class used in HTML for filter label-input pairs */
+#action-buttons-controls {
+    margin-bottom: 20px; /* Spacing between control groups */
+}
+
+#sorting-controls label,
+.filter-group label {
+    display: block; /* Labels above inputs/selects by default */
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #CCCCCC; /* Light gray for labels */
+}
+
+#product-controls-section input[type="text"],
+#product-controls-section select {
+    width: 100%; /* Full width by default, can be adjusted with flexbox for side-by-side */
+    padding: 10px; /* Slightly less padding than auth forms for compactness */
+    border: 1px solid orange;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: #333333; /* Dark input background */
+    color: #FFFFFF; /* Light text in inputs */
+    margin-bottom: 10px; /* Space if elements stack */
+}
+
+/* Specific styling for disabled category/subcategory display inputs */
+#filter-category-display,
+#filter-subcategory-display {
+    background-color: #2a2a2a; /* Slightly different dark for disabled */
+    color: #AAAAAA; /* Greyed out text */
+    cursor: not-allowed;
+}
+
+/* Layout for sorting controls to be inline */
+#sorting-controls {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    gap: 15px; /* Space between label and selects, and between selects */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+#sorting-controls label {
+    margin-bottom: 0; /* Remove bottom margin as it's inline */
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+#sorting-controls select {
+    width: auto; /* Auto width for selects in a row */
+    min-width: 150px; /* Minimum width for selects */
+    flex-grow: 1; /* Allow selects to grow */
+    margin-bottom: 0; /* Remove bottom margin as they are inline */
+}
+
+
+/* Layout for individual filter groups (label and input) */
+.filter-group {
+    /* Default is label on top, input below (full width) */
+    /* If side-by-side is desired for some:
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    */
+}
+/* .filter-group label { margin-bottom: 0; flex-basis: 150px; flex-shrink: 0; } */
+/* .filter-group input { flex-grow: 1; margin-bottom: 0; } */
+
+
+/* Action Buttons Container */
+#action-buttons-controls {
+    margin-top: 25px; /* More space before action buttons */
+    display: flex;
+    gap: 15px; /* Space between buttons */
+    justify-content: flex-start; /* Align buttons to the start */
+}
+
+/* Buttons #apply-filters-btn, #reset-filters-btn will inherit from general button style */
+/* No additional specific styling needed unless their size/margins need adjustment */
+#apply-filters-btn, #reset-filters-btn {
+    padding: 10px 20px; /* Slightly larger padding for action buttons */
+}

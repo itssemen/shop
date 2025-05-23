@@ -8,19 +8,23 @@
 </head>
 <body>
     <header>
-        <h1><a href="/">Semen's store</a></h1>
+        <h1><a href="/">klimovskiy shop</a></h1>
         <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="cart.html">Cart</a></li>
-                <!-- Links to trigger showing forms, actual forms are below -->
-                <li><a href="#" id="login-nav-link">Login</a></li>
-                <li><a href="#" id="register-nav-link">Register</a></li>
-                <li><a href="#" id="profile-nav-link" style="display:none;">Profile</a></li>
-                <li><a href="#" id="view-cart-link" style="display:none;">View Cart</a></li> 
-                <li><button id="logout-button" style="display:none;">Logout</button></li>
+                <li><span id="user-greeting-nav" style="display:none;"></span></li>
+                <li><a href="#" id="catalog-nav-link">каталог</a></li>
+                <li><a href="#" id="view-cart-link">корзина</a></li> {/* Text changed, ID kept, was display:none, linked to cart.html before for visible link */}
+                <li><a href="#" id="login-nav-link">войти</a></li>   {/* Text changed, ID kept */}
+                <li><button id="logout-button" style="display:none;">выйти</button></li> {/* Text changed, ID kept */}
             </ul>
         </nav>
+        <!-- Links not in main header but potentially used by script.js -->
+        <div style="display:none;">
+            <a href="#" id="register-nav-link">Register</a>
+            <a href="#" id="profile-nav-link">Profile</a>
+            <a href="index.html">Original Home Link (for reference, now unused)</a>
+            <a href="cart.html">Original Cart Link (for reference, now unused)</a>
+        </div>
     </header>
 
     <main>
@@ -88,6 +92,50 @@
         <!-- Products Section, Login, Registration should be distinct from cart view -->
         <section id="main-content-area"> 
             <!-- This section will wrap products, login, register to hide them when cart is shown -->
+
+            <section id="product-controls-section">
+                <h2>Фильтры и Сортировка</h2>
+                <div class="controls-row">
+                    <div id="sorting-controls">
+                        <label for="sort-by-select">Сортировка:</label>
+                        <select id="sort-by-select">
+                            <option value="" selected disabled>Выберите...</option>
+                            <option value="price">По цене</option>
+                            <option value="name">По алфавиту</option>
+                        </select>
+                        <select id="sort-order-select">
+                            <option value="asc">По возрастанию</option>
+                            <option value="desc">По убыванию</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="filter-controls">
+                    <h3>Фильтры:</h3>
+                    <div class="filter-group">
+                        <label for="filter-category-display">Категория:</label>
+                        <input type="text" id="filter-category-display" disabled placeholder="Выберите из каталога">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-subcategory-display">Подкатегория:</label>
+                        <input type="text" id="filter-subcategory-display" disabled placeholder="Выберите из каталога">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-color">Цвет:</label>
+                        <input type="text" id="filter-color" placeholder="например, Red, Blue">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-country">Страна производства:</label>
+                        <input type="text" id="filter-country" placeholder="например, USA, China">
+                    </div>
+                </div>
+
+                <div id="action-buttons-controls">
+                    <button id="apply-filters-btn">Применить</button>
+                    <button id="reset-filters-btn">Сбросить фильтр</button>
+                </div>
+            </section>
+
             <hr> 
             <h2>Products</h2>
         <div id="product-list-container">
