@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchAndDisplayProducts() {
         if (!productListContainer) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/products/`);
+            const response = await fetch('/api/products/'); // Changed to relative path
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const products = await response.json();
             productListContainer.innerHTML = '';
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchProductDetails(productId) {
         if (!modal) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+            const response = await fetch(`/api/products/${productId}`); // Changed to relative path
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const product = await response.json();
             if(modalProductName) modalProductName.textContent = product.name;

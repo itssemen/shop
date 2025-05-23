@@ -2,7 +2,7 @@ from flask import Flask, send_from_directory
 import os
 from .extensions import db, migrate
 # Ensure models are imported so Alembic can find them if not already by relationships
-from .models.product_model import Product 
+from .models.product_model import Product
 
 # Import blueprints
 from .routes.products import products_bp
@@ -10,9 +10,10 @@ from .routes.users import users_bp
 from .routes.cart import cart_bp
 
 def create_app():
-    app = Flask(__name__)
-
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    static_folder_path = os.path.join(parent_dir, 'frontend')
+    app = Flask(__name__, static_folder=static_folder_path, static_url_path='')
+
     instance_path = os.path.join(parent_dir, 'instance')
 
     if not os.path.exists(instance_path):
@@ -35,7 +36,11 @@ def create_app():
 
     @app.route('/')
     def serve_index():
-        return send_from_directory(os.path.join(os.path.dirname(__file__), '..', 'frontend'), 'index.html')
+        return send_from_directory(app.static_folder, 'index.html')
+
+    @app.route('/<path:filename>.html')
+    def serve_html(filename):
+        return send_from_directory(app.static_folder, f"{filename}.html")
 
     return app
 
