@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterCountryInput = document.getElementById('filter-country');
     const applyFiltersBtn = document.getElementById('apply-filters-btn');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
+    const applySortBtn = document.getElementById('apply-sort-btn');
+    const resetSortBtn = document.getElementById('reset-sort-btn');
 
     // --- Global State ---
     let currentUser = null;
@@ -83,38 +85,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function showSection(sectionIdToShow) {
         const allPageSections = [registrationSection, loginSection, userProfileContainer, cartContainer, mainContentArea];
         allPageSections.forEach(section => {
-            if (section) section.style.display = 'none';
+            if (section) {
+                section.style.display = 'none';
+            }
         });
         
         const sectionElement = document.getElementById(sectionIdToShow);
         if (sectionElement) {
-            sectionElement.style.display = 'block';
+            sectionElement.style.display = 'block'; // Show the target section
+        } else {
+            console.error('showSection: Element with ID ' + sectionIdToShow + ' not found.');
+            return; // Exit if the target section doesn't exist
         }
 
-        // Handle visibility of product-related sub-sections
+        // Specific visibility adjustments for sub-elements *within* a shown section
         if (sectionIdToShow === 'main-content-area') {
             if (productListContainer) productListContainer.style.display = 'grid';
             if (productControlsSection) productControlsSection.style.display = 'block';
-            // Ensure auth forms within mainContentArea are hidden if we are showing products
-            if (loginSection) loginSection.style.display = 'none';
-            if (registrationSection) registrationSection.style.display = 'none';
-            if (userProfileContainer) userProfileContainer.style.display = 'none'; // Hide profile if showing all products
-        } else if (sectionIdToShow === 'login-section' || sectionIdToShow === 'registration-section') {
-            if (mainContentArea) mainContentArea.style.display = 'block'; // Auth forms are inside mainContentArea
-            if (productListContainer) productListContainer.style.display = 'none';
-            if (productControlsSection) productControlsSection.style.display = 'none';
-            if (userProfileContainer) userProfileContainer.style.display = 'none';
-        } else if (sectionIdToShow === 'user-profile-container') {
-            if (mainContentArea) mainContentArea.style.display = 'block'; // Profile is inside mainContentArea
-            if (productListContainer) productListContainer.style.display = 'grid'; // Show products with profile
-            if (productControlsSection) productControlsSection.style.display = 'block'; // Show filters with profile
-        } else if (sectionIdToShow === 'cart-container') {
-            if (mainContentArea) mainContentArea.style.display = 'none'; // Cart is exclusive
-            if (productControlsSection) productControlsSection.style.display = 'none';
+            // Ensure internal auth forms are hidden if they were part of mainContentArea (they are not, but good for safety)
+            // if (loginSection) loginSection.style.display = 'none'; 
+            // if (registrationSection) registrationSection.style.display = 'none';
         }
+        // No special sub-element handling needed for loginSection, registrationSection, cartContainer, or userProfileContainer
+        // as they are meant to be displayed as whole sections.
     }
     
     function updateNavLinks() {
+        console.log('updateNavLinks called. CurrentUser:', currentUser);
         // Helper to set display style for a nav item (LI)
         const setNavDisplay = (element, displayStatus) => {
             if (element && element.parentElement.tagName === 'LI') {
@@ -145,8 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Product Display and Filtering Logic ---
     async function fetchAndDisplayProducts(category = null, subcategory = null, color = null, country = null, sortBy = null, sortOrder = null) {
+        console.log('Fetching products with params:', { category, subcategory, color, country, sortBy, sortOrder });
         if (!productListContainer) return;
-        let url = '/api/products/';
+        let url = `${API_BASE_URL}/products/`; // Use API_BASE_URL
         const params = new URLSearchParams();
 
         if (category) params.append('category', category);
@@ -156,12 +154,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sortBy) params.append('sort_by', sortBy);
         if (sortOrder) params.append('order', sortOrder);
         
-        if (params.toString()) url += `?${params.toString()}`;
+        let fullUrl = url;
+        if (params.toString()) {
+            fullUrl += `?${params.toString()}`;
+        }
+        console.log('Fetching products from URL:', new URL(fullUrl, window.location.origin).href); // Log the fully resolved URL
 
         try {
-            const response = await fetch(url);
+            const response = await fetch(fullUrl); // Use fullUrl
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const products = await response.json();
+            console.log('Products fetched:', products);
             productListContainer.innerHTML = ''; 
             if (products.length === 0) {
                 productListContainer.innerHTML = '<p>No products found matching your criteria.</p>';
@@ -180,7 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 attachProductCardButtonListeners();
             }
+            console.log('Product list container after rendering:', productListContainer.innerHTML);
         } catch (error) {
+            console.error('Detailed error in fetchAndDisplayProducts:', error);
             productListContainer.innerHTML = `<p>Error loading products: ${error.message}. Please try again later.</p>`;
             console.error('Error fetching products:', error);
         }
@@ -226,7 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Cart Logic ---
     async function addItemToCart(productId, quantity = 1) {
+        console.log('addItemToCart called. Product ID:', productId, 'Quantity:', quantity, 'User:', currentUser);
         if (!currentUser || !currentUser.id) {
+            console.log('User not logged in. Prompting login for adding to cart.');
             displayMessage('Please login to add items to your cart.', 'error');
             showSection('login-section');
             if (modal && modal.style.display === 'block') modal.style.display = 'none'; 
@@ -242,15 +249,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             if (response.ok) {
+                console.log('Item added/updated in cart. API response:', data);
                 displayMessage(data.message || 'Item added to cart!', 'success');
                 if (modal && modal.style.display === 'block') modal.style.display = 'none'; 
                 if (cartContainer && cartContainer.style.display === 'block') {
+                    console.log('Refreshing cart view after adding item.');
                     fetchAndDisplayCart(userId);
                 }
             } else {
                 throw new Error(data.error || 'Failed to add item to cart');
             }
         } catch (error) {
+            console.error('Detailed error in addItemToCart:', error);
             displayMessage(`Error adding to cart: ${error.message}`, 'error');
             console.error('addItemToCart error:', error);
         }
@@ -264,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function fetchAndDisplayCart(userId) {
+        console.log('fetchAndDisplayCart called for user ID:', userId);
         // ... (as before)
         if (!userId) {
             if (cartContainer) cartContainer.style.display = 'none';
@@ -275,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/cart/${userId}`);
             if (!response.ok) {
                 if(response.status === 404) { 
+                    console.log('Cart is empty.');
                     cartItemsList.innerHTML = '<p>Your cart is currently empty.</p>';
                     cartTotalPriceSpan.textContent = '0.00';
                     if(checkoutButton) checkoutButton.style.display = 'none';
@@ -283,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const cartData = await response.json();
+            console.log('Cart data received:', cartData);
             
             cartItemsList.innerHTML = ''; 
             if (cartData.cart_items && cartData.cart_items.length > 0) {
@@ -307,10 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cartItemsList.innerHTML = '<p>Your cart is currently empty.</p>';
                 if(checkoutButton) checkoutButton.style.display = 'none';
+                console.log('Cart is empty.');
             }
             cartTotalPriceSpan.textContent = cartData.total_cart_price.toFixed(2);
             attachCartItemEventListeners();
+            console.log('Cart items rendered. Cart HTML:', cartItemsList.innerHTML);
         } catch (error) {
+            console.error('Detailed error in fetchAndDisplayCart:', error);
             displayMessage('Error fetching cart: ' + error.message, 'error');
         }
     }
@@ -329,6 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleQuantityChange(event) {
+        console.log('handleQuantityChange called. Item ID:', event.target.dataset.itemId, 'Action:', event.target.classList.contains('cart-quantity-decrease') ? 'decrease' : 'increase');
         // ... (as before)
         if (!currentUser) return;
         const cartItemId = event.target.dataset.itemId;
@@ -351,21 +368,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ quantity: currentQuantity }),
             });
             if (!response.ok) throw new Error('Failed to update quantity');
+            console.log('Quantity updated. Refreshing cart.');
             fetchAndDisplayCart(currentUser.id); 
         } catch (error) {
+            console.error('Detailed error in handleQuantityChange:', error);
             displayMessage('Error updating quantity: ' + error.message, 'error');
         }
     }
 
     async function handleRemoveItem(event) {
+        console.log('handleRemoveItem called. Item ID:', event.target.dataset.itemId);
         // ... (as before)
         if (!currentUser) return;
         const cartItemId = event.target.dataset.itemId;
         try {
             const response = await fetch(`${API_BASE_URL}/cart/item/${cartItemId}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Failed to remove item');
+            console.log('Item removed. Refreshing cart.');
             fetchAndDisplayCart(currentUser.id); 
         } catch (error) {
+            console.error('Detailed error in handleRemoveItem:', error);
             displayMessage('Error removing item: ' + error.message, 'error');
         }
     }
@@ -373,10 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewCartLink) {
         viewCartLink.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('View Cart link clicked. Current user:', currentUser);
             if (currentUser && currentUser.id) {
+                console.log('Fetching and displaying cart for user ID:', currentUser.id);
                 fetchAndDisplayCart(currentUser.id); 
                 showSection('cart-container');    
             } else {
+                console.log('User not logged in, showing login section.');
                 displayMessage('Please login to view your cart.', 'info');
                 showSection('login-section');
             }
@@ -387,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginNavLink) { // This is the "войти" link in the nav
         loginNavLink.addEventListener('click', (e) => { 
             e.preventDefault(); 
+            console.log('Login nav link clicked. Showing login section.');
             showSection('login-section'); 
             if(catalogDropdown) catalogDropdown.style.display = 'none'; 
         });
@@ -406,8 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    if (showLoginLink) showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showSection('login-section'); });
-    if (showRegisterLink) showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showSection('registration-section'); });
+    if (showLoginLink) showLoginLink.addEventListener('click', (e) => { e.preventDefault(); console.log('Show Login link clicked. Showing login section.'); showSection('login-section'); });
+    if (showRegisterLink) showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); console.log('Show Register link clicked. Showing registration section.'); showSection('registration-section'); });
 
     if (registrationForm) {
         registrationForm.addEventListener('submit', async (event) => {
@@ -416,21 +442,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const username = document.getElementById('reg-username').value;
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
+            console.log('Registration form submitted with username:', username, 'email:', email);
+            let data; // Define data here to be accessible in catch block
             try {
                 const response = await fetch(`${API_BASE_URL}/users/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password }),
                 });
-                const data = await response.json();
+                data = await response.json();
                 if (response.ok) {
+                    console.log('Registration successful. API response:', data);
                     displayMessage(`Registration successful for ${data.user.username}! Please login.`, 'success');
                     registrationForm.reset();
                     showSection('login-section');
                 } else {
+                    console.error('Detailed error in registration:', 'Server Error', 'API response:', data);
                     displayMessage(`Registration failed: ${data.error || 'Unknown error'}`, 'error');
                 }
             } catch (error) {
+                console.error('Detailed error in registration:', error, 'API response:', data);
                 displayMessage('Registration request failed. Please try again.', 'error');
             }
         });
@@ -442,16 +473,19 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             const username_or_email = document.getElementById('login-username-email').value;
             const password = document.getElementById('login-password').value;
+            console.log('Login form submitted with username/email:', username_or_email);
+            let data; // Define data here to be accessible in catch block
             try {
                 const response = await fetch(`${API_BASE_URL}/users/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username_or_email, password }),
                 });
-                const data = await response.json();
+                data = await response.json();
                 if (response.ok) {
                     currentUser = data.user; 
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    console.log('Login successful. API response:', data, 'CurrentUser set to:', currentUser);
                     displayMessage(`Login successful! Welcome ${currentUser.username}.`, 'success');
                     loginForm.reset();
                     updateNavLinks();
@@ -460,15 +494,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchAndDisplayProducts(); 
                     fetchAndDisplayCart(currentUser.id); 
                 } else {
+                    console.error('Detailed error in login:', 'Server Error', 'API response:', data);
                     displayMessage(`Login failed: ${data.error || 'Invalid credentials'}`, 'error');
                 }
             } catch (error) {
+                console.error('Detailed error in login:', error, 'API response:', data);
                 displayMessage('Login request failed. Please try again.', 'error');
             }
         });
     }
     
     async function fetchAndDisplayUserProfile() {
+        console.log('fetchAndDisplayUserProfile called. Current user:', currentUser);
         if (currentUser && currentUser.id) {
             if(profileUsernameSpan) profileUsernameSpan.textContent = currentUser.username;
             if(profileEmailSpan) profileEmailSpan.textContent = currentUser.email;
@@ -482,6 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
+            console.log('Logout button clicked.');
             currentUser = null;
             localStorage.removeItem('currentUser');
             displayMessage('Logged out successfully.', 'success');
@@ -494,24 +532,57 @@ document.addEventListener('DOMContentLoaded', () => {
             resetFilterControls();
             showSection('main-content-area'); 
             fetchAndDisplayProducts();
+            console.log('User logged out. CurrentUser:', currentUser);
         });
     }
 
     function initializeAuthStatus() {
+        console.log('initializeAuthStatus called.');
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
+            console.log('Found stored user:', storedUser);
             currentUser = JSON.parse(storedUser);
             fetchAndDisplayCart(currentUser.id); // Fetch cart but don't show it
         }
+        console.log('currentUser after initialization:', currentUser);
         updateNavLinks(); 
         resetFilterControls(); 
+        console.log('Called showSection("main-content-area") from initializeAuthStatus');
         showSection('main-content-area'); // Show products and filters by default
         fetchAndDisplayProducts(); 
+        if (productListContainer) {
+            console.log('Product list container display style after initial load:', productListContainer.style.display);
+            if (productListContainer.style.display === 'none' || productListContainer.innerHTML.trim() === '') {
+                console.warn('Product list container is hidden or empty after initial load. Forcing display to grid for debugging.');
+                // productListContainer.style.display = 'grid'; // Potentially uncomment this forcing line if needed for live debugging
+            }
+        } else {
+            console.error('Product list container not found after initial load!');
+        }
+        console.log('Attempting to force visibility of main-content-area and product-list-container at the end of initializeAuthStatus.');
+        if (mainContentArea) {
+            mainContentArea.style.display = 'block';
+            console.log('mainContentArea display forced to block.');
+        } else {
+            console.error('mainContentArea not found at end of initializeAuthStatus!');
+        }
+        if (productListContainer) {
+            productListContainer.style.display = 'grid'; // Assuming grid is the desired display
+            console.log('productListContainer display forced to grid.');
+            if (productListContainer.innerHTML.trim() === '') {
+                console.warn('productListContainer is empty at the end of initializeAuthStatus, even after forcing display.');
+            } else {
+                console.log('productListContainer has content at the end of initializeAuthStatus.');
+            }
+        } else {
+            console.error('productListContainer not found at end of initializeAuthStatus!');
+        }
     }
 
     // --- Catalog Dropdown Logic ---
 
     async function fetchAndPopulateCategories() {
+        console.log('Fetching and populating categories...');
         if (!catalogDropdown) {
             console.error("Catalog dropdown element not found in HTML!");
             return;
@@ -520,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/categories`); // Using API_BASE_URL
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const categoriesData = await response.json();
+            console.log('Categories data fetched:', categoriesData);
             
             catalogDropdown.innerHTML = ''; // Clear existing content
 
@@ -551,7 +623,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 catalogDropdown.appendChild(categoryItemDiv);
             });
+            console.log('Catalog dropdown HTML populated:', catalogDropdown.innerHTML);
         } catch (error) {
+            console.error('Detailed error in fetchAndPopulateCategories:', error);
             displayMessage(`Error fetching categories: ${error.message}`, 'error');
             console.error('Error fetching categories:', error);
             if (catalogDropdown) catalogDropdown.innerHTML = '<p>Error loading categories.</p>';
@@ -572,6 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const catalogNavLi = catalogNavLink.parentElement;
 
         catalogNavLi.addEventListener('mouseenter', () => {
+            console.log('Catalog mouseenter: Displaying dropdown.');
             if (catalogDropdown.children.length === 0) { // Fetch only if not populated
                 fetchAndPopulateCategories(); // Populate on first hover, or always if dynamic data needed
             }
@@ -580,6 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         catalogNavLi.addEventListener('mouseleave', () => {
+            console.log('Catalog mouseleave: Hiding dropdown.');
             catalogDropdown.style.display = 'none';
         });
 
@@ -617,18 +693,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (mainNameSpan) categoryName = mainNameSpan.dataset.category;
             }
 
-
+            console.log('Catalog item clicked. Target:', event.target, 'Determined category:', categoryName, 'Subcategory:', subcategoryName);
             if (categoryName) {
                 if (filterCategoryDisplay) filterCategoryDisplay.value = categoryName;
                 if (filterSubcategoryDisplay) filterSubcategoryDisplay.value = subcategoryName || '';
+                console.log('Updating filter display. Category:', filterCategoryDisplay.value, 'Subcategory:', filterSubcategoryDisplay.value);
                 
                 catalogDropdown.style.display = 'none';
 
                 if (applyFiltersBtn) {
+                    console.log('Programmatically clicking applyFiltersBtn.');
                     applyFiltersBtn.click();
                 } else {
                     // Fallback if button not found, directly call fetch (assuming it's available)
                     // This part should align with how filtering is generally triggered.
+                    console.log('applyFiltersBtn not found, calling fetchAndDisplayProducts directly.');
                     fetchAndDisplayProducts(categoryName, subcategoryName || null, filterColorInput.value, filterCountryInput.value, sortBySelect.value, sortOrderSelect.value);
                 }
             }
@@ -671,6 +750,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial calls
     initializeAuthStatus(); 
     // fetchAndPopulateCategories(); // Called on page load as per subtask
+
+    if (applySortBtn) {
+        applySortBtn.addEventListener('click', () => {
+            console.log('Apply Sort button clicked.');
+            const category = filterCategoryDisplay ? filterCategoryDisplay.value : null;
+            const subcategory = filterSubcategoryDisplay ? filterSubcategoryDisplay.value : null;
+            const color = filterColorInput ? filterColorInput.value.trim() : null;
+            const country = filterCountryInput ? filterCountryInput.value.trim() : null;
+            const sortBy = sortBySelect ? sortBySelect.value : null;
+            const sortOrder = sortOrderSelect ? sortOrderSelect.value : null;
+
+            if (!sortBy) { // Optional: if "Выберите..." is selected, maybe don't sort or alert user.
+                displayMessage('Пожалуйста, выберите критерий для сортировки.', 'info');
+                // return; // Or proceed to fetch with no specific sort. Current behavior is to fetch.
+            }
+            
+            console.log('Applying sort with params:', { category, subcategory, color, country, sortBy, sortOrder });
+            fetchAndDisplayProducts(category, subcategory, color, country, sortBy, sortOrder);
+        });
+    }
+
+    if (resetSortBtn) {
+        resetSortBtn.addEventListener('click', () => {
+            console.log('Reset Sort button clicked.');
+            if (sortBySelect) sortBySelect.value = ""; // Reset to "Выберите..."
+            if (sortOrderSelect) sortOrderSelect.value = "asc"; // Reset to default order
+
+            // Fetch products with current filters but reset sort order
+            const category = filterCategoryDisplay ? filterCategoryDisplay.value : null;
+            const subcategory = filterSubcategoryDisplay ? filterSubcategoryDisplay.value : null;
+            const color = filterColorInput ? filterColorInput.value.trim() : null;
+            const country = filterCountryInput ? filterCountryInput.value.trim() : null;
+            
+            console.log('Fetching products with reset sort. Filters applied:', { category, subcategory, color, country });
+            fetchAndDisplayProducts(category, subcategory, color, country, null, null); // Pass null for sortBy and sortOrder
+        });
+    }
 
 
     // --- Order History Logic ---
@@ -731,11 +847,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // const checkoutButton = document.getElementById('checkout-button'); // Already cached
     if (checkoutButton) {
         checkoutButton.addEventListener('click', async () => {
+            console.log('Checkout button clicked.');
             try {
                 const response = await fetch('/api/orders/place', { method: 'POST' });
                 const result = await response.json();
 
                 if (response.ok) { // Status 201 for successful creation
+                    console.log('Order placed successfully. API response:', result);
                     displayMessage(`Order placed successfully! Order ID: ${result.order_id}`, 'success');
                     
                     // Refresh cart (should be empty or show empty message)
@@ -755,6 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     displayMessage(`Error placing order: ${result.message || 'Unknown error'}`, 'error');
                 }
             } catch (error) {
+                console.error('Detailed error during checkout:', error);
                 console.error('Checkout error:', error);
                 displayMessage('Failed to place order. Please try again.', 'error');
             }
