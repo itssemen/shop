@@ -111,29 +111,6 @@ def get_product(product_id):
                 'name': product.name,
                 'price': product.price,
                 'description': product.description,
-                'category': product.category
-            }), 200
-        else:
-            return jsonify({'error': 'Product not found'}), 404
-    except Exception as e:
-        # Log the exception e for debugging
-        print(f"Error in get_products: {e}")
-        return jsonify({'error': 'Internal server error while retrieving products.'}), 500
-
-# Route to get a single product by ID
-@products_bp.route('/<int:product_id>', methods=['GET'])
-def get_product(product_id):
-    try:
-        # Using .get_or_404() is a Flask-SQLAlchemy shortcut for fetching or returning 404
-        # product = Product.query.get_or_404(product_id) 
-        # However, to customize the 404 JSON response, manual check is better.
-        product = Product.query.get(product_id)
-        if product:
-            return jsonify({
-                'id': product.id,
-                'name': product.name,
-                'price': product.price,
-                'description': product.description,
                 'category': product.category,
                 'subcategory': product.subcategory, # Added new field
                 'color': product.color, # Added new field
