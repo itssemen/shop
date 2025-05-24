@@ -8,6 +8,40 @@ if project_root not in sys.path:
 
 from backend.app import create_app, db
 from backend.models.product_model import Product
+from backend.models.user_model import User # Import User model
+
+def seed_admin_user():
+    app = create_app() # Ensure app context for db operations
+    with app.app_context():
+        admin_username = 'admin'
+        admin_email = 'admin@example.com' # Provide a dummy email
+        admin_password = '1234'
+
+        # Check if admin user already exists
+        existing_admin = User.query.filter_by(username=admin_username).first()
+        if existing_admin:
+            print(f"Admin user '{admin_username}' already exists.")
+            # Optionally, update password or is_admin status if needed
+            # existing_admin.set_password(admin_password)
+            # existing_admin.is_admin = True
+            # db.session.commit()
+            return
+
+        # Create new admin user
+        admin_user = User(
+            username=admin_username,
+            email=admin_email, # Add email
+            is_admin=True
+        )
+        admin_user.set_password(admin_password) # Set password using the model's method
+        
+        db.session.add(admin_user)
+        try:
+            db.session.commit()
+            print(f"Admin user '{admin_username}' created successfully with password '1234'.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating admin user: {e}")
 
 def seed_data():
     app = create_app()
@@ -73,4 +107,9 @@ def seed_data():
             print(f"\nDatabase file NOT found at: {db_file_path}")
 
 if __name__ == '__main__':
-    seed_data()
+    # Seed products first (if it clears data and recreates tables, relationships might matter)
+    # However, current seed_data only clears Product table.
+    # For robust seeding, consider order or make them independent.
+    # Let's assume they can be called independently for now.
+    seed_data() 
+    seed_admin_user()

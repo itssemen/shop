@@ -8,6 +8,8 @@ from .models.product_model import Product
 from .routes.products import products_bp
 from .routes.users import users_bp
 from .routes.cart import cart_bp
+from .routes.admin import admin_bp # Import admin_bp
+from .routes.orders import orders_bp # Import orders_bp
 
 def create_app():
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -25,6 +27,7 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_folder_path, 'store.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'your_default_secret_key_here' # Added secret key
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -33,6 +36,8 @@ def create_app():
     app.register_blueprint(products_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(cart_bp)
+    app.register_blueprint(admin_bp) # Register admin_bp
+    app.register_blueprint(orders_bp) # Register orders_bp
 
     @app.route('/')
     def serve_index():

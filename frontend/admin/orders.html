@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders</title>
+    <link rel="stylesheet" href="admin_layout.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="users.html">Manage Users</a></li>
+                <li><a href="products.html">Manage Products</a></li>
+                <li><a href="orders.html">Manage Orders</a></li>
+            </ul>
+        </nav>
+        <button id="admin-logout-button">Logout</button>
+    </div>
+    <div class="main-content">
+        <h1>Manage Orders</h1>
+        <div id="admin-message" class="message" style="display:none;"></div>
+        <div id="order-list-admin-container">
+            <p>Loading orders...</p>
+            <!-- Order table will be rendered here -->
+        </div>
+    </div>
+    <script src="orders_script.js"></script>
+    <script>
+        // Shared logout logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('admin-logout-button');
+            if(logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    window.location.href = 'login.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkoutButton = document.getElementById('checkout-button');
 
     // --- Catalog Dropdown Elements ---
-    let catalogDropdown = null; 
+    const catalogNavLink = document.getElementById('catalog-nav-link'); // Already cached, but listed in subtask
+    const catalogDropdown = document.getElementById('catalog-dropdown'); // Get the static HTML element
 
     // --- Filter and Sort Elements ---
     const productControlsSection = document.getElementById('product-controls-section');
@@ -61,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Global State ---
     let currentUser = null;
+    // Ensure other filter elements required by subtask are cached if not already
+    // const filterCategoryDisplay = document.getElementById('filter-category-display'); // Already cached
+    // const filterSubcategoryDisplay = document.getElementById('filter-subcategory-display'); // Already cached
+    // const applyFiltersBtn = document.getElementById('apply-filters-btn'); // Already cached
 
     // --- Utility Functions ---
     function displayMessage(message, type = 'info') {
@@ -468,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(profileUsernameSpan) profileUsernameSpan.textContent = currentUser.username;
             if(profileEmailSpan) profileEmailSpan.textContent = currentUser.email;
             showSection('user-profile-container');
+            fetchAndDisplayOrderHistory(); // Call to fetch order history
         } else {
             displayMessage('Please log in to view your profile.', 'info');
             showSection('login-section');
@@ -504,129 +510,133 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Catalog Dropdown Logic ---
-    if (catalogNavLink) {
-        catalogNavLink.addEventListener('click', async (event) => {
-            // ... (as before)
-            event.preventDefault();
-            event.stopPropagation(); 
-            if (catalogDropdown && catalogDropdown.style.display === 'block') {
-                catalogDropdown.style.display = 'none';
-                return;
-            }
-            if (catalogDropdown) { 
-                positionAndShowDropdown();
-                return;
-            }
-            try {
-                const response = await fetch('/api/categories/');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const categoriesData = await response.json();
-                buildAndShowCatalogDropdown(categoriesData);
-            } catch (error) {
-                displayMessage(`Error fetching categories: ${error.message}`, 'error');
-                console.error('Error fetching categories:', error);
-            }
-        });
-    }
 
-    function buildAndShowCatalogDropdown(categoriesData) {
-        // ... (as before, ensuring resetFilterControls is called correctly)
-        if (catalogDropdown) catalogDropdown.remove(); 
-        catalogDropdown = document.createElement('div');
-        catalogDropdown.id = 'catalog-dropdown';
-        // Basic inline styles (actual styling will be in CSS)
-        catalogDropdown.style.position = 'absolute'; // Let CSS handle this
-        catalogDropdown.style.zIndex = '1000';       // Let CSS handle this
-
-        const mainCategoriesUl = document.createElement('ul');
-        mainCategoriesUl.className = 'main-categories';
-
-        categoriesData.forEach(category => {
-            const mainCategoryLi = document.createElement('li');
-            mainCategoryLi.className = 'main-category-item';
-            mainCategoryLi.textContent = category.name;
-            mainCategoryLi.dataset.categoryName = category.name;
+    async function fetchAndPopulateCategories() {
+        if (!catalogDropdown) {
+            console.error("Catalog dropdown element not found in HTML!");
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/categories`); // Using API_BASE_URL
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const categoriesData = await response.json();
             
-            mainCategoryLi.addEventListener('click', (e) => {
-                if (e.target === mainCategoryLi) { 
-                    resetFilterControls(); 
-                    if(filterCategoryDisplay) filterCategoryDisplay.value = category.name;
-                    if(filterSubcategoryDisplay) filterSubcategoryDisplay.value = ''; 
-                    fetchAndDisplayProducts(category.name, null, null, null, sortBySelect.value, sortOrderSelect.value);
-                    if (catalogDropdown) catalogDropdown.style.display = 'none';
-                }
-            });
+            catalogDropdown.innerHTML = ''; // Clear existing content
 
-            if (category.subcategories && category.subcategories.length > 0) {
-                const subcategoriesUl = document.createElement('ul');
-                subcategoriesUl.className = 'subcategories';
+            categoriesData.forEach(category => {
+                const categoryItemDiv = document.createElement('div');
+                categoryItemDiv.className = 'category-item';
 
-                category.subcategories.forEach(subcategoryName => {
-                    const subcategoryLi = document.createElement('li');
-                    subcategoryLi.className = 'subcategory-item';
-                    subcategoryLi.textContent = subcategoryName;
-                    subcategoryLi.dataset.subcategoryName = subcategoryName;
-                    
-                    subcategoryLi.addEventListener('click', (e) => {
-                        e.stopPropagation(); 
-                        resetFilterControls(); 
-                        if(filterCategoryDisplay) filterCategoryDisplay.value = category.name;
-                        if(filterSubcategoryDisplay) filterSubcategoryDisplay.value = subcategoryName;
-                        fetchAndDisplayProducts(category.name, subcategoryName, null, null, sortBySelect.value, sortOrderSelect.value);
-                        if (catalogDropdown) catalogDropdown.style.display = 'none';
+                const mainCategorySpan = document.createElement('span');
+                mainCategorySpan.className = 'main-category-name';
+                mainCategorySpan.textContent = category.name;
+                mainCategorySpan.dataset.category = category.name;
+                categoryItemDiv.appendChild(mainCategorySpan);
+
+                if (category.subcategories && category.subcategories.length > 0) {
+                    const subcategoryListDiv = document.createElement('div');
+                    subcategoryListDiv.className = 'subcategory-list';
+                    subcategoryListDiv.style.display = 'none'; // Initially hidden
+
+                    category.subcategories.forEach(subcategoryName => {
+                        const subcategoryLink = document.createElement('a'); // Using <a> as per typical usage
+                        subcategoryLink.href = '#'; // Prevent page jump
+                        subcategoryLink.className = 'subcategory-item';
+                        subcategoryLink.textContent = subcategoryName;
+                        subcategoryLink.dataset.category = category.name;
+                        subcategoryLink.dataset.subcategory = subcategoryName;
+                        subcategoryListDiv.appendChild(subcategoryLink);
                     });
-                    subcategoriesUl.appendChild(subcategoryLi);
-                });
-                mainCategoryLi.appendChild(subcategoriesUl);
-
-                mainCategoryLi.addEventListener('mouseenter', () => {
-                    const allSubULs = mainCategoryLi.parentElement.querySelectorAll('.subcategories');
-                    allSubULs.forEach(ul => { if(ul !== subcategoriesUl) ul.style.display = 'none';});
-                    subcategoriesUl.style.display = 'block';
-                });
-                mainCategoryLi.addEventListener('mouseleave', (e) => {
-                     if (!subcategoriesUl.contains(e.relatedTarget) && e.relatedTarget !== subcategoriesUl) {
-                        subcategoriesUl.style.display = 'none';
-                    }
-                });
-                subcategoriesUl.addEventListener('mouseleave', (e) => {
-                    if (!mainCategoryLi.contains(e.relatedTarget) && e.relatedTarget !== mainCategoryLi ) {
-                         subcategoriesUl.style.display = 'none';
-                    }
-                });
-            } else { 
-                 mainCategoryLi.addEventListener('mouseenter', () => {
-                    const allSubULs = mainCategoryLi.parentElement.querySelectorAll('.subcategories');
-                    allSubULs.forEach(ul => ul.style.display = 'none');
-                });
-            }
-            mainCategoriesUl.appendChild(mainCategoryLi);
-        });
-        catalogDropdown.appendChild(mainCategoriesUl);
-        document.body.appendChild(catalogDropdown); 
-        positionAndShowDropdown();
-        if (!document.catalogDropdownClickListenerAdded) {
-            document.addEventListener('click', handleClickOutsideDropdown, true); 
-            document.catalogDropdownClickListenerAdded = true; 
+                    categoryItemDiv.appendChild(subcategoryListDiv);
+                }
+                catalogDropdown.appendChild(categoryItemDiv);
+            });
+        } catch (error) {
+            displayMessage(`Error fetching categories: ${error.message}`, 'error');
+            console.error('Error fetching categories:', error);
+            if (catalogDropdown) catalogDropdown.innerHTML = '<p>Error loading categories.</p>';
         }
     }
-    
-    function positionAndShowDropdown() {
+
+    function positionDropdown() {
         if (!catalogDropdown || !catalogNavLink) return;
         const rect = catalogNavLink.getBoundingClientRect();
-        catalogDropdown.style.top = `${rect.bottom + window.scrollY}px`;
-        catalogDropdown.style.left = `${rect.left + window.scrollX}px`;
-        catalogDropdown.style.display = 'block';
+        // Position relative to the nav link's parent LI, which should have position: relative
+        catalogDropdown.style.top = `${catalogNavLink.offsetHeight}px`; // Position below the nav link
+        catalogDropdown.style.left = `0px`; // Align with the left of the parent LI
+        // CSS should handle background, border, etc.
+        // z-index and position:absolute are set in CSS for #catalog-dropdown
     }
 
-    function handleClickOutsideDropdown(event) {
-        if (catalogDropdown && catalogDropdown.style.display === 'block') {
-            if (event.target === catalogNavLink || catalogDropdown.contains(event.target)) {
-                return; 
+    if (catalogNavLink && catalogDropdown) {
+        const catalogNavLi = catalogNavLink.parentElement;
+
+        catalogNavLi.addEventListener('mouseenter', () => {
+            if (catalogDropdown.children.length === 0) { // Fetch only if not populated
+                fetchAndPopulateCategories(); // Populate on first hover, or always if dynamic data needed
             }
-            catalogDropdown.style.display = 'none'; 
-        }
+            positionDropdown(); // Position it correctly
+            catalogDropdown.style.display = 'block';
+        });
+
+        catalogNavLi.addEventListener('mouseleave', () => {
+            catalogDropdown.style.display = 'none';
+        });
+
+        // Event delegation for subcategory list show/hide
+        catalogDropdown.addEventListener('mouseover', (event) => {
+            const targetCategoryItem = event.target.closest('.category-item');
+            if (targetCategoryItem) {
+                // Hide all other subcategory lists
+                catalogDropdown.querySelectorAll('.subcategory-list').forEach(list => {
+                    list.style.display = 'none';
+                });
+                // Show current subcategory list if it exists
+                const subList = targetCategoryItem.querySelector('.subcategory-list');
+                if (subList) {
+                    subList.style.display = 'block';
+                }
+            }
+        });
+        
+        // Event delegation for filtering logic
+        catalogDropdown.addEventListener('click', (event) => {
+            const target = event.target;
+            let categoryName = null;
+            let subcategoryName = null;
+
+            if (target.matches('.main-category-name')) {
+                categoryName = target.dataset.category;
+            } else if (target.matches('.subcategory-item')) {
+                event.preventDefault(); // For <a> tags
+                categoryName = target.dataset.category;
+                subcategoryName = target.dataset.subcategory;
+            } else if (target.closest('.category-item') && !target.closest('.subcategory-list')) {
+                // Clicked on category-item but not on a subcategory (implies main category click)
+                const mainNameSpan = target.closest('.category-item').querySelector('.main-category-name');
+                if (mainNameSpan) categoryName = mainNameSpan.dataset.category;
+            }
+
+
+            if (categoryName) {
+                if (filterCategoryDisplay) filterCategoryDisplay.value = categoryName;
+                if (filterSubcategoryDisplay) filterSubcategoryDisplay.value = subcategoryName || '';
+                
+                catalogDropdown.style.display = 'none';
+
+                if (applyFiltersBtn) {
+                    applyFiltersBtn.click();
+                } else {
+                    // Fallback if button not found, directly call fetch (assuming it's available)
+                    // This part should align with how filtering is generally triggered.
+                    fetchAndDisplayProducts(categoryName, subcategoryName || null, filterColorInput.value, filterCountryInput.value, sortBySelect.value, sortOrderSelect.value);
+                }
+            }
+        });
     }
+    
+    // Remove old catalog logic if it exists (buildAndShowCatalogDropdown, positionAndShowDropdown, handleClickOutsideDropdown)
+    // This is done by not including them in the final script. The replace tool will overwrite the file.
 
     // --- Filter and Sort Button Logic ---
     function resetFilterControls() {
@@ -660,6 +670,98 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial calls
     initializeAuthStatus(); 
+    // fetchAndPopulateCategories(); // Called on page load as per subtask
+
+
+    // --- Order History Logic ---
+    async function fetchAndDisplayOrderHistory() {
+        const orderHistoryListDiv = document.getElementById('order-history-list');
+        if (!orderHistoryListDiv) return;
+
+        orderHistoryListDiv.innerHTML = '<p>Loading order history...</p>';
+
+        try {
+            const response = await fetch('/api/orders/history'); // GET by default
+            if (!response.ok) {
+                if (response.status === 401) { // Unauthorized
+                    orderHistoryListDiv.innerHTML = '<p>Please log in to view your order history.</p>';
+                    // Optionally, trigger login form display
+                } else {
+                    const errorData = await response.json();
+                    orderHistoryListDiv.innerHTML = `<p>Error loading order history: ${errorData.message || 'Unknown error'}</p>`;
+                }
+                return;
+            }
+            const orders = await response.json();
+            if (orders.length === 0) {
+                orderHistoryListDiv.innerHTML = '<p>You have no orders yet.</p>';
+                return;
+            }
+
+            orderHistoryListDiv.innerHTML = ''; // Clear loading message
+            orders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'order-card'; // CSS class from previous step
+                
+                let itemsHtml = '<ul class="order-items-list">'; // CSS class from previous step
+                order.items.forEach(item => {
+                    // For now, product_id is included. Fetching names would require more complex state management or API changes.
+                    const productName = `Product ID: ${item.product_id}`; 
+                    itemsHtml += `<li>${productName} - Qty: ${item.quantity} @ $${item.price_at_purchase.toFixed(2)} each</li>`;
+                });
+                itemsHtml += '</ul>';
+
+                orderCard.innerHTML = `
+                    <h4>Order #${order.id} - Placed on: ${new Date(order.order_date).toLocaleDateString()}</h4>
+                    <p>Status: <strong>${order.status}</strong></p>
+                    <p>Total Amount: <strong>$${order.total_amount.toFixed(2)}</strong></p>
+                    <p>Items:</p>
+                    ${itemsHtml}
+                `;
+                orderHistoryListDiv.appendChild(orderCard);
+            });
+
+        } catch (error) {
+            console.error('Failed to fetch order history:', error);
+            orderHistoryListDiv.innerHTML = '<p>Could not retrieve order history. Please try again later.</p>';
+        }
+    }
+
+    // --- Checkout Button Logic ---
+    // const checkoutButton = document.getElementById('checkout-button'); // Already cached
+    if (checkoutButton) {
+        checkoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/orders/place', { method: 'POST' });
+                const result = await response.json();
+
+                if (response.ok) { // Status 201 for successful creation
+                    displayMessage(`Order placed successfully! Order ID: ${result.order_id}`, 'success');
+                    
+                    // Refresh cart (should be empty or show empty message)
+                    // Assuming fetchAndDisplayCart is the function that loads cart items
+                    if (currentUser && currentUser.id) {
+                        fetchAndDisplayCart(currentUser.id); 
+                    } else { // Should not happen if checkout requires login, but good practice
+                        if(cartItemsList) cartItemsList.innerHTML = '<p>Your cart is empty.</p>';
+                        if(cartTotalPriceSpan) cartTotalPriceSpan.textContent = '0.00';
+                    }
+                    
+                    // Hide cart, show main content area
+                    if (cartContainer) cartContainer.style.display = 'none';
+                    showSection('main-content-area'); // Or a specific "thank you" page/section
+                    
+                } else {
+                    displayMessage(`Error placing order: ${result.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                displayMessage('Failed to place order. Please try again.', 'error');
+            }
+        });
+    }
+    // Ensure displayMessage is defined (it is, from previous code)
+    // Ensure fetchAndDisplayCart is defined (it is, from previous code)
 
     const homeStoreLink = document.querySelector('header h1 a'); 
      if(homeStoreLink) {
