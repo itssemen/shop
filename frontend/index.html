@@ -12,13 +12,33 @@
         <nav>
             <ul>
                 <li><span id="user-greeting-nav" style="display:none;"></span></li>
-                <li><a href="#" id="catalog-nav-link">каталог</a></li>
-                <li><a href="#" id="view-cart-link">корзина</a></li> {/* Text changed, ID kept, was display:none, linked to cart.html before for visible link */}
-                <li><a href="#" id="login-nav-link">войти</a></li>   {/* Text changed, ID kept */}
-                <li><button id="logout-button" style="display:none;">выйти</button></li> {/* Text changed, ID kept */}
+                <li>
+                    <a href="#" id="catalog-nav-link">каталог</a>
+                    <div id="catalog-dropdown" class="catalog-dropdown-container" style="display: none; position: absolute; z-index: 1000;">
+                        <!-- Categories will be populated here by JavaScript -->
+                        <!-- Example structure for one category with subcategories:
+                        <div class="category-item">
+                            <span class="main-category-name">Electronics</span>
+                            <div class="subcategory-list" style="display: none;">
+                                <a href="#" class="subcategory-item" data-category="Electronics" data-subcategory="Smartphones">Smartphones</a>
+                                <a href="#" class="subcategory-item" data-category="Electronics" data-subcategory="Laptops">Laptops</a>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <span class="main-category-name">Books</span>
+                            <div class="subcategory-list" style="display: none;">
+                                 <a href="#" class="subcategory-item" data-category="Books" data-subcategory="Fiction">Fiction</a>
+                            </div>
+                        </div>
+                        <a href="#" class="category-item" data-category="Clothing">Clothing (No Subcategories)</a> 
+                        -->
+                    </div>
+                </li>
+                <li><a href="#" id="view-cart-link">корзина</a></li> 
+                <li><a href="#" id="login-nav-link">войти</a></li>   
+                <li><button id="logout-button" style="display:none;">выйти</button></li>
             </ul>
         </nav>
-        <!-- Links not in main header but potentially used by script.js -->
         <div style="display:none;">
             <a href="#" id="register-nav-link">Register</a>
             <a href="#" id="profile-nav-link">Profile</a>
@@ -35,7 +55,6 @@
         <section id="cart-container" style="display:none;">
             <h2>Your Shopping Cart</h2>
             <div id="cart-items-list">
-                <!-- Cart items will be loaded here by JavaScript -->
             </div>
             <div id="cart-summary">
                 <strong>Total Price: $<span id="cart-total-price">0.00</span></strong>
@@ -86,60 +105,72 @@
             <h2>User Profile</h2>
             <p>Welcome, <span id="profile-username"></span>!</p>
             <p>Email: <span id="profile-email"></span></p>
+            
+            <hr>
+            <h3>My Order History</h3>
+            <div id="order-history-list" class="order-history-container">
+                <!-- Orders will be loaded here -->
+                <p>Loading order history...</p>
+            </div>
             <!-- More profile information can be added here -->
         </section>
         
         <!-- Products Section, Login, Registration should be distinct from cart view -->
         <section id="main-content-area"> 
-            <!-- This section will wrap products, login, register to hide them when cart is shown -->
 
             <section id="product-controls-section">
-                <h2>Фильтры и Сортировка</h2>
-                <div class="controls-row">
-                    <div id="sorting-controls">
-                        <label for="sort-by-select">Сортировка:</label>
-                        <select id="sort-by-select">
-                            <option value="" selected disabled>Выберите...</option>
-                            <option value="price">По цене</option>
-                            <option value="name">По алфавиту</option>
-                        </select>
-                        <select id="sort-order-select">
-                            <option value="asc">По возрастанию</option>
-                            <option value="desc">По убыванию</option>
-                        </select>
+                <!-- <h2>Фильтры и Сортировка</h2> -->
+                <div class="expandable-control" id="expandable-sort-control">
+                    <span class="control-title">Сортировка</span>
+                    <div class="control-content" id="sorting-controls-content">
+                        <div id="sorting-controls"> <!-- Keep original ID for JS compatibility if needed -->
+                            <label for="sort-by-select">Сортировка по:</label>
+                            <select id="sort-by-select">
+                                <option value="" selected disabled>Выберите...</option>
+                                <option value="price">По цене</option>
+                                <option value="name">По алфавиту</option>
+                            </select>
+                            <select id="sort-order-select">
+                                <option value="asc">По возрастанию</option>
+                                <option value="desc">По убыванию</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-
-                <div id="filter-controls">
-                    <h3>Фильтры:</h3>
-                    <div class="filter-group">
-                        <label for="filter-category-display">Категория:</label>
-                        <input type="text" id="filter-category-display" disabled placeholder="Выберите из каталога">
+        
+                <div class="expandable-control" id="expandable-filter-control">
+                    <span class="control-title">Фильтры</span>
+                    <div class="control-content" id="filter-controls-content">
+                        <div id="filter-controls"> <!-- Keep original ID -->
+                            <h3>Фильтры:</h3> <!-- This h3 was inside filter-controls -->
+                            <div class="filter-group">
+                                <label for="filter-category-display">Категория:</label>
+                                <input type="text" id="filter-category-display" disabled placeholder="Выберите из каталога">
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-subcategory-display">Подкатегория:</label>
+                                <input type="text" id="filter-subcategory-display" disabled placeholder="Выберите из каталога">
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-color">Цвет:</label>
+                                <input type="text" id="filter-color" placeholder="например, Red, Blue">
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-country">Страна производства:</label>
+                                <input type="text" id="filter-country" placeholder="например, USA, China">
+                            </div>
+                        </div>
+                        <div id="action-buttons-controls"> <!-- Keep original ID -->
+                            <button id="apply-filters-btn">Применить</button>
+                            <button id="reset-filters-btn">Сбросить фильтр</button>
+                        </div>
                     </div>
-                    <div class="filter-group">
-                        <label for="filter-subcategory-display">Подкатегория:</label>
-                        <input type="text" id="filter-subcategory-display" disabled placeholder="Выберите из каталога">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-color">Цвет:</label>
-                        <input type="text" id="filter-color" placeholder="например, Red, Blue">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-country">Страна производства:</label>
-                        <input type="text" id="filter-country" placeholder="например, USA, China">
-                    </div>
-                </div>
-
-                <div id="action-buttons-controls">
-                    <button id="apply-filters-btn">Применить</button>
-                    <button id="reset-filters-btn">Сбросить фильтр</button>
                 </div>
             </section>
 
             <hr> 
             <h2>Products</h2>
         <div id="product-list-container">
-            <!-- Products will be loaded here by JavaScript from script.js -->
         </div>
 
         <!-- Product Detail Modal (Initially Hidden from previous task) -->

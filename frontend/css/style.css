@@ -25,11 +25,15 @@ nav ul {
     list-style-type: none;
     padding: 0;
     margin-top: 10px;
+    display: flex; /* Added */
+    flex-direction: row; /* Added for explicitness */
+    justify-content: center; /* Added to center the items */
+    align-items: center; /* Added for vertical alignment */
 }
 
 nav ul li {
-    display: inline;
-    margin: 0 10px;
+    margin: 0 10px; /* Keep margin for spacing */
+    position: relative; /* For positioning the absolute dropdown */
 }
 
 nav ul li a, nav ul li button {
@@ -495,36 +499,135 @@ button:hover,
 
 /* --- Product Filtering and Sorting Controls Styling --- */
 #product-controls-section {
+    display: flex; /* Arrange sort and filter buttons in a row */
+    gap: 15px; /* Space between the two buttons */
     margin-top: 20px;
     margin-bottom: 30px;
-    padding: 25px;
+    padding: 15px; /* Overall padding for the area containing the two buttons */
     border: 1px solid orange;
     border-radius: 8px;
-    background-color: #1e1e1e; /* Consistent dark background */
-    box-shadow: 0 2px 4px rgba(255,165,0,0.1);
+    background-color: #1e1e1e;
+    align-items: flex-start; /* Align buttons to the top if they have different expanded heights */
 }
 
-#product-controls-section h2 { /* "Фильтры и Сортировка" */
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: #FFFFFF;
-    font-size: 1.8em;
-    border-bottom: 1px solid orange;
-    padding-bottom: 10px;
+/* Remove or adjust old specific h2/h3 styles if they conflict or are no longer needed */
+/* #product-controls-section h2 { ... } */
+/* #product-controls-section h3 { ... } */
+
+
+.expandable-control {
+    background-color: #333; /* Button-like background */
+    color: white;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    overflow: hidden; /* Important for hiding content before expansion */
+    /* position: relative; /* For positioning content if needed (not for in-flow expansion) */
+    border: 1px solid orange;
+    min-width: 100px; /* Example: adjust as needed */
+    height: 40px; /* Fixed initial height for the "button" */
+    display: flex; /* To align title */
+    align-items: center; /* Vertically center title */
+    justify-content: center; /* Center title */
+    flex-direction: column; /* Stack title and content vertically */
 }
 
-#product-controls-section h3 { /* "Фильтры:" */
-    margin-top: 20px; /* Space above sub-heading */
-    margin-bottom: 15px;
-    color: #FFFFFF;
-    font-size: 1.5em;
-    /* No border-bottom for h3 to differentiate from main section h2 */
+.expandable-control .control-title {
+    font-weight: bold;
+    display: block; 
+    transition: opacity 0.3s ease-in-out;
+    text-align: center; /* Ensure title is centered */
+    height: 100%; /* Make title take full initial height of button for centering */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.expandable-control .control-content {
+    display: none; /* Hidden initially */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out 0.1s, visibility 0s linear 0.4s, max-height 0.3s ease-in-out; /* Added max-height transition */
+    padding-top: 15px; /* Space between title and content */
+    background-color: #2a2a2a; /* Slightly different background for expanded area */
+    /* position: absolute;  Removed for in-flow expansion */
+    /* top: 100%; */
+    /* left: 0; */
+    width: 100%; /* Content takes full width of its parent .expandable-control */
+    /* z-index: 10; */
+    /* border-top: 1px solid orange; No border-top if it's revealed in-flow */
+    padding: 15px;
+    border-radius: 0 0 6px 6px; /* Keep rounding for bottom */
+    /* box-shadow: 0 5px 10px rgba(0,0,0,0.2); */ /* Shadow might look odd for in-flow */
+    max-height: 0; /* Start with max-height 0 for transition */
+    overflow: hidden; /* Ensure content within max-height is clipped */
+}
+
+/* Styles for when the control is expanded (on hover) */
+.expandable-control:hover {
+    height: auto; /* Allow height to grow based on content */
+    min-height: 40px; /* Ensure it doesn't collapse smaller than initial button */
+}
+
+.expandable-control:hover .control-title {
+    /* When expanded, title might need less space or be part of the flow */
+    height: auto; /* Let title take its natural height */
+    padding-bottom: 10px; /* Space between title and content start */
+}
+
+.expandable-control:hover .control-content {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s, 0s, 0s; /* Remove delay for opacity, visibility and max-height on hover */
+    max-height: 1000px; /* Large enough value to accommodate content */
+}
+
+/* Keep original styles for inputs/selects/labels within .control-content */
+/* e.g., #sorting-controls, .filter-group, etc. should still apply */
+/* Ensure they fit well within the new expanded containers */
+.expandable-control .control-content #sorting-controls,
+.expandable-control .control-content #filter-controls,
+.expandable-control .control-content #action-buttons-controls {
+    margin-bottom: 0; /* Remove bottom margin if it's the last element */
+}
+/* Original #sorting-controls already has display:flex. We might need to adjust its children for vertical stacking if desired */
+.expandable-control .control-content #sorting-controls {
+    display: flex;
+    flex-direction: column; /* Stack label and selects vertically */
+    align-items: stretch; /* Make children take full width */
+    gap: 10px; /* Space between elements in sorting */
+}
+.expandable-control .control-content #sorting-controls label {
+     margin-bottom: 0; /* Remove if already handled by gap */
+}
+.expandable-control .control-content #sorting-controls select {
+    width: 100%; /* Make selects take full width */
+    min-width: auto; /* Override previous min-width if any */
+}
+
+
+.expandable-control .control-content #filter-controls {
+    /* Original filter-controls might need adjustments if its children were laid out horizontally */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between filter groups */
+}
+.expandable-control .control-content .filter-group {
+    margin-bottom: 0; /* Remove if handled by parent gap */
+}
+
+.expandable-control .control-content #action-buttons-controls {
+    /* Original action-buttons-controls already has display:flex. Might be fine. */
+    margin-top: 15px; /* Add some space above buttons */
+}
+
 
 #sorting-controls, 
 .filter-group, /* Class used in HTML for filter label-input pairs */
 #action-buttons-controls {
-    margin-bottom: 20px; /* Spacing between control groups */
+    margin-bottom: 20px; /* Spacing between control groups - this might be redundant now or need adjustment */
 }
 
 #sorting-controls label,
@@ -600,4 +703,145 @@ button:hover,
 /* No additional specific styling needed unless their size/margins need adjustment */
 #apply-filters-btn, #reset-filters-btn {
     padding: 10px 20px; /* Slightly larger padding for action buttons */
+}
+
+/* --- Catalog Dropdown Styling --- */
+#catalog-dropdown { /* Using ID to match HTML */
+    display: none; /* Hidden by default, JS handles visibility */
+    position: absolute; 
+    background-color: #1e1e1e; 
+    border: 1px solid orange; 
+    border-radius: 4px;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000; 
+    padding: 10px 0; /* Padding for the container */
+    margin-top: 5px; /* Small space below the "каталог" link */
+}
+
+#catalog-dropdown .category-item {
+    padding: 10px 15px;
+    color: #FFFFFF;
+    cursor: pointer;
+    display: block; /* Make the whole item a block */
+    text-decoration: none; /* If using <a> tags directly as category-items */
+    position: relative; /* For subcategory positioning */
+}
+
+#catalog-dropdown .category-item:hover > .main-category-name,
+#catalog-dropdown .category-item:hover {
+    background-color: orange;
+    color: #000000;
+}
+
+/* --- Order History Styling --- */
+.order-history-container {
+    margin-top: 20px;
+}
+.order-card {
+    background-color: #2a2a2a; /* Darker card for orders */
+    border: 1px solid orange;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.order-card h4 { /* Order ID and Date */
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: orange;
+}
+.order-card p {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+.order-card .order-items-list {
+    margin-top: 10px;
+    padding-left: 20px;
+    list-style-type: disc;
+}
+.order-card .order-items-list li {
+    margin-bottom: 5px;
+}
+
+/* Styling for the main category name if it's a span inside category-item */
+#catalog-dropdown .main-category-name {
+    display: block; /* Ensure it takes full width for hover effect */
+}
+
+#catalog-dropdown .subcategory-list {
+    /* Subcategories will fly out or appear nested */
+    /* For now, basic styling. Advanced flyout handled by JS + more CSS */
+    display: none; /* Hidden by default */
+    margin-left: 15px; /* Indent subcategories */
+    padding-top: 5px;
+    border-top: 1px solid #333; /* Separator */
+}
+
+#catalog-dropdown .subcategory-item {
+    padding: 8px 15px;
+    color: #CCCCCC;
+    cursor: pointer;
+    display: block; /* Make it block for easier clicking */
+    text-decoration: none;
+}
+
+#catalog-dropdown .subcategory-item:hover {
+    background-color: #e69500; /* Darker orange or consistent orange */
+    color: #000000;
+}
+
+/* --- Catalog Dropdown Styling --- */
+#catalog-dropdown { /* Using ID to match HTML */
+    display: none; /* Hidden by default, JS handles visibility */
+    position: absolute; 
+    background-color: #1e1e1e; 
+    border: 1px solid orange; 
+    border-radius: 4px;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000; 
+    padding: 10px 0; /* Padding for the container */
+    margin-top: 5px; /* Small space below the "каталог" link */
+}
+
+#catalog-dropdown .category-item {
+    padding: 10px 15px;
+    color: #FFFFFF;
+    cursor: pointer;
+    display: block; /* Make the whole item a block */
+    text-decoration: none; /* If using <a> tags directly as category-items */
+    position: relative; /* For subcategory positioning */
+}
+
+#catalog-dropdown .category-item:hover > .main-category-name,
+#catalog-dropdown .category-item:hover {
+    background-color: orange;
+    color: #000000;
+}
+
+/* Styling for the main category name if it's a span inside category-item */
+#catalog-dropdown .main-category-name {
+    display: block; /* Ensure it takes full width for hover effect */
+}
+
+#catalog-dropdown .subcategory-list {
+    /* Subcategories will fly out or appear nested */
+    /* For now, basic styling. Advanced flyout handled by JS + more CSS */
+    display: none; /* Hidden by default */
+    margin-left: 15px; /* Indent subcategories */
+    padding-top: 5px;
+    border-top: 1px solid #333; /* Separator */
+}
+
+#catalog-dropdown .subcategory-item {
+    padding: 8px 15px;
+    color: #CCCCCC;
+    cursor: pointer;
+    display: block; /* Make it block for easier clicking */
+    text-decoration: none;
+}
+
+#catalog-dropdown .subcategory-item:hover {
+    background-color: #e69500; /* Darker orange or consistent orange */
+    color: #000000;
 }

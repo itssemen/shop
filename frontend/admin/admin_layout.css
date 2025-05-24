@@ -1,0 +1,16 @@
+body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f4; display: flex; }
+.sidebar { width: 200px; background-color: #333; color: white; height: 100vh; padding: 20px; box-sizing: border-box; }
+.sidebar h2 { text-align: center; color: orange; margin-top:0; }
+.sidebar nav ul { list-style-type: none; padding: 0; }
+.sidebar nav ul li a { display: block; color: white; padding: 10px; text-decoration: none; border-bottom: 1px solid #444; }
+.sidebar nav ul li a:hover { background-color: #555; }
+.sidebar #admin-logout-button { background-color: orange; color: black; border: none; padding: 10px; width: 100%; text-align: center; cursor: pointer; margin-top: 20px; border-radius: 3px; box-sizing: border-box; }
+.sidebar #admin-logout-button:hover { background-color: #e69500;}
+.main-content { flex-grow: 1; padding: 20px; box-sizing: border-box; }
+.main-content h1 { color: #333; }
+/* Basic table styling for later */
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #e9ecef; }
+button { background-color: orange; color: black; border: none; padding: 8px 12px; border-radius: 3px; cursor: pointer; }
+button:hover { background-color: #e69500; }

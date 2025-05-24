@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products</title>
+    <link rel="stylesheet" href="admin_layout.css">
+    <style>
+        /* Basic Modal Styling (can be moved to admin_layout.css) */
+        .modal {
+            display: none; position: fixed; z-index: 1001; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 10% auto; padding: 20px;
+            border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px;
+        }
+        .modal-content h3 { margin-top: 0; }
+        .modal-content label { display: block; margin-top: 10px; }
+        .modal-content input[type='text'], .modal-content input[type='number'], .modal-content textarea {
+            width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;
+        }
+        .modal-content button { margin-top: 15px; }
+        .close-modal-btn { float: right; font-size: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="users.html">Manage Users</a></li>
+                <li><a href="products.html">Manage Products</a></li>
+                <li><a href="orders.html">Manage Orders</a></li>
+            </ul>
+        </nav>
+        <button id="admin-logout-button">Logout</button>
+    </div>
+    <div class="main-content">
+        <h1>Manage Products</h1>
+        <div id="admin-message" class="message" style="display:none;"></div>
+        <div id="product-list-admin-container">
+            <p>Loading products...</p>
+        </div>
+
+        <!-- Edit Product Modal -->
+        <div id="edit-product-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal-btn" id="close-edit-modal-btn">&times;</span>
+                <h3>Edit Product</h3>
+                <form id="edit-product-form">
+                    <input type="hidden" id="edit-product-id">
+                    <div>
+                        <label for="edit-product-name">Name:</label>
+                        <input type="text" id="edit-product-name" required>
+                    </div>
+                    <div>
+                        <label for="edit-product-price">Price:</label>
+                        <input type="number" id="edit-product-price" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="edit-product-description">Description:</label>
+                        <textarea id="edit-product-description" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="edit-product-category">Category:</label>
+                        <input type="text" id="edit-product-category">
+                    </div>
+                    <div>
+                        <label for="edit-product-subcategory">Subcategory:</label>
+                        <input type="text" id="edit-product-subcategory">
+                    </div>
+                    <div>
+                        <label for="edit-product-color">Color:</label>
+                        <input type="text" id="edit-product-color">
+                    </div>
+                    <div>
+                        <label for="edit-product-country">Country of Origin:</label>
+                        <input type="text" id="edit-product-country">
+                    </div>
+                    <button type="submit">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="products_script.js"></script>
+    <script>
+        // Shared logout logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('admin-logout-button');
+            if(logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    window.location.href = 'login.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

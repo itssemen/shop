@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- <link rel="stylesheet" href="admin.css"> -->
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f4; display: flex; }
+        .sidebar { width: 200px; background-color: #333; color: white; height: 100vh; padding: 20px; }
+        .sidebar h2 { text-align: center; color: orange; }
+        .sidebar nav ul { list-style-type: none; padding: 0; }
+        .sidebar nav ul li a { display: block; color: white; padding: 10px; text-decoration: none; border-bottom: 1px solid #444; }
+        .sidebar nav ul li a:hover { background-color: #555; }
+        .sidebar #admin-logout-button { background-color: orange; color: black; border: none; padding: 10px; width: 100%; text-align: center; cursor: pointer; margin-top: 20px; border-radius: 3px; }
+        .sidebar #admin-logout-button:hover { background-color: #e69500;}
+        .main-content { flex-grow: 1; padding: 20px; }
+        .main-content h1 { color: #333; }
+        #admin-message { margin-top: 15px; padding: 10px; border-radius: 3px; text-align: center; display:none; }
+        .error { background-color: #f2dede; color: #a94442; border: 1px solid #ebccd1;}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="users.html">Manage Users</a></li>
+                <li><a href="products.html">Manage Products</a></li>
+                <li><a href="orders.html">Manage Orders</a></li>
+            </ul>
+        </nav>
+        <button id="admin-logout-button">Logout</button>
+    </div>
+    <div class="main-content">
+        <h1>Welcome to the Admin Dashboard</h1>
+        <p>Select an option from the sidebar to manage users, products, or orders.</p>
+        <div id="admin-message" class="message" style="display:none;"></div>
+        <!-- Content will be loaded here or on specific pages -->
+    </div>
+
+    <script>
+        // Basic session check simulation / protection
+        // A more robust check would involve an API call to a protected endpoint
+        // For example, fetch '/admin/users' and if it fails with 401/403, redirect.
+        // This is simplified for now.
+        async function checkAdminSession() {
+            const messageDiv = document.getElementById('admin-message');
+            try {
+                // Attempt to fetch a protected resource. 
+                // If this fails due to auth, redirect.
+                // The '/admin/users' endpoint is suitable.
+                const response = await fetch('/admin/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    // If status is 401 (Unauthorized) or 403 (Forbidden)
+                    if (response.status === 401 || response.status === 403) {
+                        console.log('Admin session invalid or expired. Redirecting to login.');
+                        window.location.href = 'login.html';
+                    } else {
+                        // Handle other non-OK responses if necessary
+                        const data = await response.json();
+                        messageDiv.textContent = 'Error verifying admin session: ' + (data.message || response.statusText);
+                        messageDiv.className = 'message error';
+                        messageDiv.style.display = 'block';
+                    }
+                    return false; // Session not valid for admin purposes
+                }
+                // If response is OK, admin is authenticated
+                console.log('Admin session verified.');
+                return true; // Session valid
+            } catch (error) {
+                console.error('Error checking admin session:', error);
+                messageDiv.textContent = 'Could not verify admin session. Please try logging in again.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                // Optional: redirect to login on any catch error as well
+                // window.location.href = 'login.html'; 
+                return false; // Session check failed
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminSession(); // Check session when dashboard loads
+
+            const logoutButton = document.getElementById('admin-logout-button');
+            if(logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    try {
+                        // Inform the backend about logout if there's a specific logout endpoint
+                        // For session-cookie based auth, often just redirecting client-side is enough
+                        // if the session cookie is HttpOnly.
+                        // If backend needs to do session cleanup:
+                        // await fetch('/admin/logout', { method: 'POST' }); 
+                        
+                        // For now, clear any session indication client-side (if any) and redirect
+                        console.log('Admin logging out.');
+                        window.location.href = 'login.html'; 
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        // Still redirect even if backend logout call fails
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
