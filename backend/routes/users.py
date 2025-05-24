@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session # Add session here
 from backend.models.user_model import User
 from backend.extensions import db
 
@@ -53,13 +53,15 @@ def login_user():
     user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
 
     if user and user.check_password(password):
-        # For now, just a success message. Token/session would be implemented here.
+        session['user_id'] = user.id # <--- ADD THIS LINE
+        session['username'] = user.username # Optional: store username also
         return jsonify({
             'message': 'Login successful',
             'user': {
                 'id': user.id,
                 'username': user.username,
                 'email': user.email
+                # Consider not sending email back here if not strictly needed by frontend post-login
             }
         }), 200
     else:

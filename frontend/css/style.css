@@ -564,23 +564,26 @@ button:hover,
     overflow: hidden; /* Ensure content within max-height is clipped */
 }
 
-/* Styles for when the control is expanded (on hover) */
-.expandable-control:hover {
+/* Styles for when the control is expanded (on hover or when an element within has focus) */
+.expandable-control:hover,
+.expandable-control:focus-within {
     height: auto; /* Allow height to grow based on content */
     min-height: 40px; /* Ensure it doesn't collapse smaller than initial button */
 }
 
-.expandable-control:hover .control-title {
+.expandable-control:hover .control-title,
+.expandable-control:focus-within .control-title {
     /* When expanded, title might need less space or be part of the flow */
     height: auto; /* Let title take its natural height */
     padding-bottom: 10px; /* Space between title and content start */
 }
 
-.expandable-control:hover .control-content {
+.expandable-control:hover .control-content,
+.expandable-control:focus-within .control-content {
     display: block;
     opacity: 1;
     visibility: visible;
-    transition-delay: 0s, 0s, 0s; /* Remove delay for opacity, visibility and max-height on hover */
+    transition-delay: 0s, 0s, 0s; /* Remove delay for opacity, visibility and max-height on hover/focus-within */
     max-height: 1000px; /* Large enough value to accommodate content */
 }
 
